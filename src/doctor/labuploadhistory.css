@@ -1,0 +1,42 @@
+.labuploadhistorytable{
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    border-collapse: collapse;
+    margin-top: 20px;
+
+}
+.labuploadhistorytable tr{
+    border-bottom: 1px solid #03FDFC;
+}
+.labuploadhistory-action{
+    text-align: center;
+}
+.labuploadhistorytable th{
+    padding: 10px;
+    text-align: left;
+    background-color: #03FDFC;
+    color: white;
+}
+.labuploadhistorytable td{
+    padding: 10px;
+    text-align: left;
+}
+.labuploadhistory-actionbutton{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+.labuploadhistory-actionbutton button{
+    
+   
+    text-align: center;
+    background-color: #03c0c1;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
