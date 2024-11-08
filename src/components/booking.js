@@ -1,7 +1,25 @@
 import React, { useState } from 'react'; 
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { db } from './firebaseconfig';
+import { collection, addDoc } from 'firebase/firestore';
+import { query, where, getDocs} from 'firebase/firestore';
 
+// Sample booking data
+const bookings = [
+  { id: 1, consultantName: 'Dr. John Doe', appointmentDate: '2024-10-01T10:00' },
+  { id: 2, consultantName: 'Dr. Jane Smith', appointmentDate: '2024-10-02T11:00' },
+  // Add more bookings as needed
+];
+
+// Function to get booking by consultant name
+export const getBookingByConsultant = async (consultantName) => {
+  const q = query(collection(db, 'bookings'), where('consultantName', '==', consultantName));
+  const querySnapshot = await getDocs(q);
+  const bookings = [];
+  querySnapshot.forEach((doc) => bookings.push({ id: doc.id, ...doc.data() }));
+  return bookings;
+};
 // Validation schema with Yup
 const validationSchema = Yup.object().shape({
   consultantName: Yup.string().required('Consultant name is required'),
@@ -17,11 +35,34 @@ const Booking = () => {
   const [isBooked, setIsBooked] = useState(false);
   const [consultantName, setConsultantName] = useState('');
 
+  // Get current date and time in the required format
+  const getMinDateTime = () => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16); // Format for "YYYY-MM-DDTHH:MM"
+  };
+
   // List of consultants
   const consultants = [
-    { id: 'consultant1', name: 'Consultant 1' },
-    { id: 'consultant2', name: 'Consultant 2' },
-    { id: 'consultant3', name: 'Consultant 3' }
+    { id: 1, name: 'Dr. John Doe' },
+    { id: 2, name: 'Dr. Jane Smith' },
+    { id: 3, name: 'Dr. Emily Davis' },
+    { id: 4, name: 'Dr. Robert Brown' }, 
+    { id: 5, name: 'Dr. Sarah Wilson' },
+    { id: 6, name: 'Dr. Michael Johnson' },
+    { id: 7, name: 'Dr. Laura Garcia' },
+    { id: 8, name: 'Dr. James Lee' },
+    { id: 9, name: 'Dr. Karen Martinez' },
+    { id: 10, name: 'Dr. Daniel Anderson' },
+    { id: 11, name: 'Dr. Patricia Thompson' },
+    { id: 12, name: 'Dr. Matthew Young' },
+    { id: 13, name: 'Dr. Barbara White' },
+    { id: 14, name: 'Dr. Charles Harris' },
+    { id: 15, name: 'Dr. Nancy Walker' },
+    { id: 16, name: 'Dr. David Robinson' },
+    { id: 17, name: 'Dr. Susan Martinez' },
+    { id: 18, name: 'Dr. Joshua Clark' },
+    { id: 19, name: 'Dr. Linda Rodriguez' },
+    { id: 20, name: 'Dr. Joseph Taylor' },
   ];
 
   // Initial values for the form
@@ -33,11 +74,22 @@ const Booking = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (values) => {
-    console.log('Form values:', values);
-    setConsultantName(values.consultantName); // Save consultant name for confirmation
-    setIsBooked(true); // Set booking status to true
+  const handleSubmit = async (values, { resetForm }) => {
+    try {
+      await addDoc(collection(db, 'bookings'), {
+        consultantName: values.consultantName,
+        consultantEmail: values.consultantEmail,
+        appointmentDate: values.appointmentDate,
+        reference: values.reference,
+      });
+      setConsultantName(values.consultantName); // Save consultant name for confirmation
+      setIsBooked(true); // Set booking status to true
+      resetForm(); // Clear the form
+    } catch (error) {
+      console.error('Error adding booking: ', error);
+    }
   };
+  
 
   return (
     <div className="booking-container" id="booking">
@@ -73,17 +125,6 @@ const Booking = () => {
                 <ErrorMessage name="consultantName" component="div" className="error-message" />
               </div>
 
-              <div className="form-group" id="consultant-email-section">
-                <label htmlFor="consultantEmail" className="subtopic">Consultant Email</label>
-                <Field
-                  type="email"
-                  id="consultantEmail"
-                  name="consultantEmail"
-                  className="form-field"
-                />
-                <ErrorMessage name="consultantEmail" component="div" className="error-message" />
-              </div>
-
               <div className="form-group" id="appointment-date-section">
                 <label htmlFor="appointmentDate" className="subtopic">Appointment Date & Time</label>
                 <Field
@@ -91,12 +132,13 @@ const Booking = () => {
                   id="appointmentDate"
                   name="appointmentDate"
                   className="form-field"
+                  min={getMinDateTime()} // Set min attribute to disable past dates
                 />
                 <ErrorMessage name="appointmentDate" component="div" className="error-message" />
               </div>
 
               <div className="form-group" id="reference-section">
-                <label htmlFor="reference" className="subtopic">References</label>
+                <label htmlFor="reference" className="subtopic">Remarks</label>
                 <Field
                   as="textarea"
                   id="reference"
@@ -106,19 +148,18 @@ const Booking = () => {
                 <ErrorMessage name="reference" component="div" className="error-message" />
               </div>
 
-              <button type="submit" className="submit-button" id="submit-button">Submit</button>
+              <button type="submit" className="submit-button" id="submit-button">Save</button>
             </Form>
           )}
         </Formik>
       )}
 
-<style>
+      <style>
         {`
           .booking-container {
-         
-             padding: 20px; 
+            padding: 20px;
             max-width: 500px;
-            margin:auto; /* Add margin for space above and below */
+            margin: 40px auto;
             background-color: #f4f4f4;
             border-radius: 19px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -134,7 +175,7 @@ const Booking = () => {
           }
 
           .subtopic {
-            font-size: 18px; /* Subtopic font size */
+            font-size: 18px;
           }
 
           .form-field {
@@ -171,7 +212,7 @@ const Booking = () => {
           }
 
           #title-section {
-            font-size: 24px; /* Set the font size to 24px */
+            font-size: 24px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 20px;
@@ -182,4 +223,4 @@ const Booking = () => {
   );
 };
 
-export default Booking;
+export default Booking; // Default export
